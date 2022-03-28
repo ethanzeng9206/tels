@@ -1,6 +1,7 @@
 syntax = "proto3";                           //The .proto file version is defined as v3. 
 package telemetry;                           //The package name is telemetry. 
-option go_package = "/huawei";                       
+option go_package = "/huawei";
+
 message Telemetry {                         //Telemetry message structure definition. 
    string node_id_str = 1;                     //Device name.
    string subscription_id_str = 2;             //Subscription name during static subscription configuration. 

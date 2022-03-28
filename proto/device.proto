@@ -1,0 +1,6 @@
+syntax = "proto3";
+
+message Switch {
+    string port = 1
+    Switch 
+}
