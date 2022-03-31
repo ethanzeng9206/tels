@@ -11,7 +11,7 @@ import (
 )
 
 func main()  {
-	fmt.Println("telemery server")
+	log.Println("telemery server")
 	grpcServer := grpc.NewServer()
 	// client := huawei.NewGRPCDataserviceClient()
 	var telServer = service.NewTelServer()
