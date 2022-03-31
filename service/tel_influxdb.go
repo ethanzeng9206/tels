@@ -16,8 +16,8 @@ func WirteDataToDb(p *write.Point) {
 
 func DbClient() influxdb2.Client {
 	client := influxdb2.NewClient("http://10.158.1.123:8086", "6xbs-nUI6oQjDvhUSUc8VBtzdvl324yY5JdKYv9enGrDrwf4jhjYTaiaAxHWRJzQchodRMVdaBJRnLsNzruUUA==")
-	client.Options().SetBatchSize(1200000)
-	client.Options().SetMaxRetries(2400000)
+	client.Options().SetBatchSize(120000)
+	client.Options().SetMaxRetries(240000)
 	return client
 }
 
