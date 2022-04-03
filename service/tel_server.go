@@ -28,6 +28,7 @@ func NewTelServer() *TelServer {
 }
 
 func (s *TelServer) DataPublish(stream huawei.GRPCDataservice_DataPublishServer) error {
+	// 这里需要加for循环，否则会丢数据，时间节点不匹配
 	for {
 		err := contextError(stream.Context())
 		if err != nil {
@@ -73,8 +74,8 @@ func (s *TelServer) DataPublish(stream huawei.GRPCDataservice_DataPublishServer)
 					p1 := influxdb2.NewPointWithMeasurement("ifmTraffic").
 					AddTag("Device", huaweiTel.NodeIdStr).
 					AddTag("Port", ifmInt.Name).
-					AddField("SendBytes", ifmInt.GetMibStatistics().GetSendByte()).
-					AddField("ReceiveBytes",ifmInt.GetMibStatistics().GetReceiveByte()).
+					AddField("SendBits", ifmInt.GetMibStatistics().GetSendByte() * 8).
+					AddField("ReceiveBits",ifmInt.GetMibStatistics().GetReceiveByte() * 8).
 					SetTime(time.UnixMilli(int64(ifmIntData.GetTimestamp())))
 					// WirteDataToDb(p)
 
@@ -82,7 +83,7 @@ func (s *TelServer) DataPublish(stream huawei.GRPCDataservice_DataPublishServer)
 					AddTag("Device", huaweiTel.NodeIdStr).
 					AddTag("Port", ifmInt.Name).
 					AddField("SendPacket", ifmInt.GetMibStatistics().GetSendPacket()).
-					AddField("ReceivePacket",ifmInt.GetMibStatistics().GetReceivePacket()).
+					AddField("ReceivePacket", ifmInt.GetMibStatistics().GetReceivePacket()).
 					AddField("SendErrorPacket", ifmInt.GetMibStatistics().GetSendErrorPacket()).
 					AddField("ReceiveErrorPacket", ifmInt.GetMibStatistics().GetReceiveErrorPacket()).
 					AddField("SendDropPacket", ifmInt.GetMibStatistics().GetSendDropPacket()).
