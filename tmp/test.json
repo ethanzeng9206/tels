@@ -1,1 +1,154 @@
-{"node_id_str":"SH1-BGP-R1","subscription_id_str":"subscription1","sensor_path":"huawei-ifm:ifm/interfaces/interface/mib-statistics","proto_path":"huawei_ifm.Ifm","collection_id":"3","collection_start_time":"1648002329315","msg_timestamp":"1648002329410","collection_end_time":"1648002329315","current_period":10000,"except_desc":"OK","product_name":"NE40E","encoding":"Encoding_JSON","data_str":{"row":[{"timestamp":"1648002329315","content":{"ifm":{"interfaces":{"interface":[{"name":"GigabitEthernet1/0/0","mib-statistics":{"receive-byte":"0","send-byte":"0","receive-packet":"0","send-packet":"0","receive-unicast-packet":"0","receive-multicast-packet":"0","receive-broad-packet":"0","send-unicast-packet":"0","send-multicast-packet":"0","send-broad-packet":"0"}}]}}}},{"timestamp":"1648002329315","content":{"ifm":{"interfaces":{"interface":[{"name":"GigabitEthernet1/0/2","mib-statistics":{"receive-byte":"0","send-byte":"0","receive-packet":"0","send-packet":"0","receive-unicast-packet":"0","receive-multicast-packet":"0","receive-broad-packet":"0","send-unicast-packet":"0","send-multicast-packet":"0","send-broad-packet":"0"}}]}}}},{"timestamp":"1648002329315","content":{"ifm":{"interfaces":{"interface":[{"name":"GigabitEthernet1/0/3","mib-statistics":{"receive-byte":"0","send-byte":"0","receive-packet":"0","send-packet":"0","receive-unicast-packet":"0","receive-multicast-packet":"0","receive-broad-packet":"0","send-unicast-packet":"0","send-multicast-packet":"0","send-broad-packet":"0"}}]}}}},{"timestamp":"1648002329315","content":{"ifm":{"interfaces":{"interface":[{"name":"GigabitEthernet1/0/4","mib-statistics":{"receive-byte":"0","send-byte":"0","receive-packet":"0","send-packet":"0","receive-unicast-packet":"0","receive-multicast-packet":"0","receive-broad-packet":"0","send-unicast-packet":"0","send-multicast-packet":"0","send-broad-packet":"0"}}]}}}},{"timestamp":"1648002329315","content":{"ifm":{"interfaces":{"interface":[{"name":"GigabitEthernet1/0/1","mib-statistics":{"receive-byte":"0","send-byte":"0","receive-packet":"0","send-packet":"0","receive-unicast-packet":"0","receive-multicast-packet":"0","receive-broad-packet":"0","send-unicast-packet":"0","send-multicast-packet":"0","send-broad-packet":"0"}}]}}}}],"delete":[],"generator":{"generator_id":"0","generator_sn":"0","generator_sync":false}}}
+{
+    "node_id_str": "SH1-BGP-R1",
+    "subscription_id_str": "subscription1",
+    "sensor_path": "huawei-ifm:ifm/interfaces/interface/mib-statistics",
+    "proto_path": "huawei_ifm.Ifm",
+    "collection_id": "3",
+    "collection_start_time": "1648002329315",
+    "msg_timestamp": "1648002329410",
+    "collection_end_time": "1648002329315",
+    "current_period": 10000,
+    "except_desc": "OK",
+    "product_name": "NE40E",
+    "encoding": "Encoding_JSON",
+    "data_str": {
+        "row": [
+            {
+                "timestamp": "1648002329315",
+                "content": {
+                    "ifm": {
+                        "interfaces": {
+                            "interface": [
+                                {
+                                    "name": "GigabitEthernet1/0/0",
+                                    "mib-statistics": {
+                                        "receive-byte": "0",
+                                        "send-byte": "0",
+                                        "receive-packet": "0",
+                                        "send-packet": "0",
+                                        "receive-unicast-packet": "0",
+                                        "receive-multicast-packet": "0",
+                                        "receive-broad-packet": "0",
+                                        "send-unicast-packet": "0",
+                                        "send-multicast-packet": "0",
+                                        "send-broad-packet": "0"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            {
+                "timestamp": "1648002329315",
+                "content": {
+                    "ifm": {
+                        "interfaces": {
+                            "interface": [
+                                {
+                                    "name": "GigabitEthernet1/0/2",
+                                    "mib-statistics": {
+                                        "receive-byte": "0",
+                                        "send-byte": "0",
+                                        "receive-packet": "0",
+                                        "send-packet": "0",
+                                        "receive-unicast-packet": "0",
+                                        "receive-multicast-packet": "0",
+                                        "receive-broad-packet": "0",
+                                        "send-unicast-packet": "0",
+                                        "send-multicast-packet": "0",
+                                        "send-broad-packet": "0"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            {
+                "timestamp": "1648002329315",
+                "content": {
+                    "ifm": {
+                        "interfaces": {
+                            "interface": [
+                                {
+                                    "name": "GigabitEthernet1/0/3",
+                                    "mib-statistics": {
+                                        "receive-byte": "0",
+                                        "send-byte": "0",
+                                        "receive-packet": "0",
+                                        "send-packet": "0",
+                                        "receive-unicast-packet": "0",
+                                        "receive-multicast-packet": "0",
+                                        "receive-broad-packet": "0",
+                                        "send-unicast-packet": "0",
+                                        "send-multicast-packet": "0",
+                                        "send-broad-packet": "0"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            {
+                "timestamp": "1648002329315",
+                "content": {
+                    "ifm": {
+                        "interfaces": {
+                            "interface": [
+                                {
+                                    "name": "GigabitEthernet1/0/4",
+                                    "mib-statistics": {
+                                        "receive-byte": "0",
+                                        "send-byte": "0",
+                                        "receive-packet": "0",
+                                        "send-packet": "0",
+                                        "receive-unicast-packet": "0",
+                                        "receive-multicast-packet": "0",
+                                        "receive-broad-packet": "0",
+                                        "send-unicast-packet": "0",
+                                        "send-multicast-packet": "0",
+                                        "send-broad-packet": "0"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            {
+                "timestamp": "1648002329315",
+                "content": {
+                    "ifm": {
+                        "interfaces": {
+                            "interface": [
+                                {
+                                    "name": "GigabitEthernet1/0/1",
+                                    "mib-statistics": {
+                                        "receive-byte": "0",
+                                        "send-byte": "0",
+                                        "receive-packet": "0",
+                                        "send-packet": "0",
+                                        "receive-unicast-packet": "0",
+                                        "receive-multicast-packet": "0",
+                                        "receive-broad-packet": "0",
+                                        "send-unicast-packet": "0",
+                                        "send-multicast-packet": "0",
+                                        "send-broad-packet": "0"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        ],
+        "delete": [],
+        "generator": {
+            "generator_id": "0",
+            "generator_sn": "0",
+            "generator_sync": false
+        }
+    }
+}
