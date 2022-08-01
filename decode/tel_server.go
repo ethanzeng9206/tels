@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"tels/pb/huawei"
 	"tels/service"
 	"time"
@@ -30,136 +29,121 @@ func NewTelServer() *TelServer {
 
 func (s *TelServer) DataPublish(stream huawei.GRPCDataservice_DataPublishServer) error {
 	// 这里需要加for循环，否则会丢数据，时间节点不匹配
-	for {
-		// 这里不要直接返回error,不然如果程序运行过程中出现错误就直接终止了
-		err := contextError(stream.Context())
-		if err != nil {
-			log.Print(err)
-		}
-
-		// req, err := stream.Recv()
-		req, err := stream.Recv()
-		
-		if err == io.EOF {
-			log.Print("no more data")
-			break
-		}
-		if err != nil {
-			log.Print("can not receive stream request: ", err )
-			return err
-		}
-
-		// w := req.GetReqId()
-		// fmt.Println(w)
-
-		data := req.GetData()
-		
-		var huaweiTel = &huawei.Telemetry{}
-		err = proto.Unmarshal(data, huaweiTel)
-		if err != nil {
-			fmt.Printf("解析头数据失败：%s\n", err)
-		}
-
-		if huaweiTel.SensorPath == "huawei-ifm:ifm/interfaces/interface/mib-statistics" {
-			client := service.DbClient()
-			writeApi := client.WriteAPI("its", "tels")
-
-			ifmArry := huaweiTel.GetDataGpb().GetRow()
-			for _, ifmIntData := range ifmArry {	
-				var ifmIntInfo = &huawei.Ifm{}
-				err = proto.Unmarshal((ifmIntData.GetContent()), ifmIntInfo)
-				if err != nil {
-					fmt.Printf("解析ifm数据失败：%s\n", err)
-				}
-				ifmIntArry := ifmIntInfo.Interfaces.GetInterface()
-				for _, ifmInt := range ifmIntArry {
-					p1 := influxdb2.NewPointWithMeasurement("ifmTraffic").
-					AddTag("Device", huaweiTel.NodeIdStr).
-					AddTag("Port", ifmInt.Name).
-					AddField("SendBits", ifmInt.GetMibStatistics().GetSendByte() * 8).
-					AddField("ReceiveBits",ifmInt.GetMibStatistics().GetReceiveByte() * 8).
-					SetTime(time.UnixMilli(int64(ifmIntData.GetTimestamp())))
-					// WirteDataToDb(p)
-
-					p2 := influxdb2.NewPointWithMeasurement("ifmPacket").
-					AddTag("Device", huaweiTel.NodeIdStr).
-					AddTag("Port", ifmInt.Name).
-					AddField("SendPacket", ifmInt.GetMibStatistics().GetSendPacket()).
-					AddField("ReceivePacket", ifmInt.GetMibStatistics().GetReceivePacket()).
-					AddField("SendErrorPacket", ifmInt.GetMibStatistics().GetSendErrorPacket()).
-					AddField("ReceiveErrorPacket", ifmInt.GetMibStatistics().GetReceiveErrorPacket()).
-					AddField("SendDropPacket", ifmInt.GetMibStatistics().GetSendDropPacket()).
-					AddField("ReceiveDropPacket", ifmInt.GetMibStatistics().GetReceiveDropPacket()).
-					SetTime(time.UnixMilli(int64(ifmIntData.GetTimestamp())))
-					writeApi.WritePoint(p1)
-					writeApi.WritePoint(p2)
-				}
+	// for {
+	// 	// 这里不要直接返回error,不然如果程序运行过程中出现错误就直接终止了
+	// 	err := contextError(stream.Context())
+	// 	if err != nil {
+	// 		log.Print(err)
+	// 	}
+	// }
+	for i:=0; i<6; i++ {
+		go func (i int)  {
+			for stream != nil {
+				decode(stream)
 			}
-			writeApi.Flush()
-			client.Close()
-		}
-
-		if huaweiTel.SensorPath == "huawei-debug:debug/cpu-infos/cpu-info" {
-			client := service.DbClient()
-			writeApi := client.WriteAPI("its", "tels")
-			cpuData := huaweiTel.GetDataGpb().GetRow()
-			for _, cpuInfosArry := range cpuData {
-				var cpuInfoArry = &huawei.Debug{}
-				err := proto.Unmarshal(cpuInfosArry.GetContent(), cpuInfoArry)
-				if err != nil {
-					fmt.Printf("解析cpu数据失败：%s\n", err)
-				}
-				cpuInfos := cpuInfoArry.GetCpuInfos().GetCpuInfo()
-				for _, cpuInfo := range cpuInfos {
-					p := influxdb2.NewPointWithMeasurement("cpu").
-					AddTag("Device", huaweiTel.NodeIdStr).
-					AddTag("Position", cpuInfo.Position).
-					AddField("CPU Usage", cpuInfo.SystemCpuUsage).
-					SetTime(time.UnixMilli(int64(cpuInfosArry.GetTimestamp())))
-					// WirteDataToDb(p)
-					writeApi.WritePoint(p)
-				} 
-			}
-			writeApi.Flush()
-			client.Close()
-		}
-
-		if huaweiTel.SensorPath == "huawei-debug:debug/memory-infos/memory-info" {
-			client := service.DbClient()
-			writeApi := client.WriteAPI("its", "tels")
-			memData := huaweiTel.GetDataGpb().GetRow()
-			for _, memInfosArry := range memData {
-				var memInfoArry = &huawei.Debug{}
-				err := proto.Unmarshal(memInfosArry.GetContent(), memInfoArry)
-				if err != nil {
-					fmt.Printf("解析内存数据失败：%s\n", err)
-				}
-				memInfos := memInfoArry.GetMemoryInfos().GetMemoryInfo()
-				for _, memInfo := range memInfos {
-					// fmt.Println(ProtobuffToJson(memInfo))
-					p := influxdb2.NewPointWithMeasurement("mem").
-					AddTag("Device", huaweiTel.NodeIdStr).
-					AddTag("Position", memInfo.Position).
-					AddField("Mem Total", memInfo.GetOsMemoryTotal()).
-					AddField("Mem Usage", memInfo.GetDoMemoryUse()).
-					SetTime(time.UnixMilli(int64(memInfosArry.GetTimestamp())))
-					// WirteDataToDb(p)
-					writeApi.WritePoint(p)
-				}
-			}
-			writeApi.Flush()
-			client.Close()
-		}
+		}(i)
 	}
 	return nil
 }
 
-func ()  {
+func decode(stream huawei.GRPCDataservice_DataPublishServer) error {
+	err := contextError(stream.Context())
+	if err != nil {
+		service.Logger.Error(err.Error())
+	}
+
+	req, err := stream.Recv()
+	if err == io.EOF {
+		service.Logger.Info("no more received stream")
+	}
+	if err != nil {
+		service.Logger.Errorf("can not receive stream request: %s" , err)
+	}
 	
+	rawData := req.GetData()
+
+	var telData = &huawei.Telemetry{}
+	err = proto.Unmarshal(rawData, telData)
+	if err != nil {
+		// log.Printf("解析头数据失败：%s\n", err)
+		service.Logger.Errorf("解析头数据失败: %s", err)
+	}
+
+	client := service.DbClient()
+	writeApi := client.WriteAPI("its", "tels")
+
+	switch telData.SensorPath {
+	case "huawei-ifm:ifm/interfaces/interface/mib-statistics":
+		service.Logger.Info("接收来自%s的网卡流量数据包", telData.GetNodeIdStr())
+		ifmArryData := telData.GetDataGpb().GetRow()
+		for _, ifmRawData := range ifmArryData {
+			var ifmData = &huawei.Ifm{}
+			err = proto.Unmarshal((ifmRawData.GetContent()), ifmData)
+			if err != nil {
+				service.Logger.Errorf("解析ifm数据失败： %s", err)
+			}
+
+			ifmIntData := ifmData.Interfaces.GetInterface()
+			for _, intData := range ifmIntData {
+				p := influxdb2.NewPointWithMeasurement("ifmTraffic").
+				AddTag("Device", telData.GetNodeIdStr()).AddTag("Port", intData.GetName()).
+				AddField("SendBits", intData.GetMibStatistics().GetSendByte() * 8).AddField("ReceiveBits", intData.GetMibStatistics().GetReceiveByte() * 8).
+				AddField("SendPacket", intData.GetMibStatistics().GetSendPacket()).AddField("ReceivePacket", intData.GetMibStatistics().GetReceivePacket()).
+				SetTime(time.UnixMilli(int64(ifmRawData.GetTimestamp())))
+				writeApi.WritePoint(p)
+			}
+		}
+	case "huawei-debug:debug/cpu-infos/cpu-info":
+		service.Logger.Info("接收来自%s的CPU使用数据包", telData.GetNodeIdStr())
+		devmArryData := telData.GetDataGpb().GetRow()
+		for _, devmRawData := range devmArryData{
+			var devmData = &huawei.Debug{}
+			err := proto.Unmarshal(devmRawData.GetContent(), devmData)
+			if err != nil {
+				service.Logger.Errorf("解析devm数据失败: %s", err)
+			}
+
+			cpuInfos := devmData.GetCpuInfos().GetCpuInfo()
+
+			for _, cpuInfo := range cpuInfos {
+				p := influxdb2.NewPointWithMeasurement("cpu").
+				AddTag("Device", telData.NodeIdStr).
+				AddTag("Position", cpuInfo.Position).
+				AddField("CPU Usage", cpuInfo.SystemCpuUsage).
+				SetTime(time.UnixMilli(int64(devmRawData.GetTimestamp())))
+				// WirteDataToDb(p)
+				writeApi.WritePoint(p)
+			}
+		}
+	case "huawei-debug:debug/memory-infos/memory-info":
+		service.Logger.Info("接收来自%s的内存使用数据包", telData.GetNodeIdStr())
+		devmArryData := telData.GetDataGpb().GetRow()
+		for _, devmRawData := range devmArryData{
+			var devmData = &huawei.Debug{}
+			err := proto.Unmarshal(devmRawData.GetContent(), devmData)
+			if err != nil {
+				service.Logger.Errorf("解析devm数据失败: %s", err)
+			}
+
+			memInfos := devmData.GetMemoryInfos().GetMemoryInfo()
+
+			for _, memInfo := range memInfos {
+				p := influxdb2.NewPointWithMeasurement("mem").
+				AddTag("Device", telData.NodeIdStr).
+				AddTag("Position", memInfo.Position).
+				AddField("Mem Total", memInfo.GetOsMemoryTotal()).
+				AddField("Mem Usage", memInfo.GetDoMemoryUse()).
+				SetTime(time.UnixMilli(int64(devmRawData.GetTimestamp())))
+				writeApi.WritePoint(p)
+			}
+		}
+	default:	
+		break
+	}
+	writeApi.Flush()
+
+	return nil
 }
-
-
-
 
 func contextError(ctx context.Context) error{
 	switch ctx.Err() {
