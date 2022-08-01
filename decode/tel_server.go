@@ -1,4 +1,4 @@
-package service
+package decode
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"tels/pb/huawei"
+	"tels/service"
 	"time"
 
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
@@ -30,9 +31,10 @@ func NewTelServer() *TelServer {
 func (s *TelServer) DataPublish(stream huawei.GRPCDataservice_DataPublishServer) error {
 	// 这里需要加for循环，否则会丢数据，时间节点不匹配
 	for {
+		// 这里不要直接返回error,不然如果程序运行过程中出现错误就直接终止了
 		err := contextError(stream.Context())
 		if err != nil {
-			return err
+			log.Print(err)
 		}
 
 		// req, err := stream.Recv()
@@ -59,11 +61,11 @@ func (s *TelServer) DataPublish(stream huawei.GRPCDataservice_DataPublishServer)
 		}
 
 		if huaweiTel.SensorPath == "huawei-ifm:ifm/interfaces/interface/mib-statistics" {
-			client := DbClient()
+			client := service.DbClient()
 			writeApi := client.WriteAPI("its", "tels")
 
-			ifmIntArry := huaweiTel.GetDataGpb().GetRow()
-			for _, ifmIntData := range ifmIntArry {	
+			ifmArry := huaweiTel.GetDataGpb().GetRow()
+			for _, ifmIntData := range ifmArry {	
 				var ifmIntInfo = &huawei.Ifm{}
 				err = proto.Unmarshal((ifmIntData.GetContent()), ifmIntInfo)
 				if err != nil {
@@ -98,7 +100,7 @@ func (s *TelServer) DataPublish(stream huawei.GRPCDataservice_DataPublishServer)
 		}
 
 		if huaweiTel.SensorPath == "huawei-debug:debug/cpu-infos/cpu-info" {
-			client := DbClient()
+			client := service.DbClient()
 			writeApi := client.WriteAPI("its", "tels")
 			cpuData := huaweiTel.GetDataGpb().GetRow()
 			for _, cpuInfosArry := range cpuData {
@@ -123,7 +125,7 @@ func (s *TelServer) DataPublish(stream huawei.GRPCDataservice_DataPublishServer)
 		}
 
 		if huaweiTel.SensorPath == "huawei-debug:debug/memory-infos/memory-info" {
-			client := DbClient()
+			client := service.DbClient()
 			writeApi := client.WriteAPI("its", "tels")
 			memData := huaweiTel.GetDataGpb().GetRow()
 			for _, memInfosArry := range memData {
@@ -152,6 +154,13 @@ func (s *TelServer) DataPublish(stream huawei.GRPCDataservice_DataPublishServer)
 	return nil
 }
 
+func ()  {
+	
+}
+
+
+
+
 func contextError(ctx context.Context) error{
 	switch ctx.Err() {
 	case context.Canceled:
@@ -163,7 +172,6 @@ func contextError(ctx context.Context) error{
 	}
 }
 
-
 func WriteProtobufToJSONFile(message proto.Message, filename string) error {
 	data, err := ProtobuffToJson(message)
 	if err != nil {
@@ -174,7 +182,6 @@ func WriteProtobufToJSONFile(message proto.Message, filename string) error {
 	if err != nil {
 		return fmt.Errorf("cannot write JSON data to file: %w", err)
 	}
-
 	return nil
 }
 
