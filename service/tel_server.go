@@ -149,6 +149,7 @@ func (s *TelServer) DataPublish(stream huawei.GRPCDataservice_DataPublishServer)
 			client.Close()
 		}
 	}
+	
 	return nil
 }
 
