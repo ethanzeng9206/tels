@@ -36,14 +36,11 @@ func (s *TelServer) DataPublish(stream huawei.GRPCDataservice_DataPublishServer)
 	// 		log.Print(err)
 	// 	}
 	// }
-	for i:=0; i<6; i++ {
-		go func (i int)  {
-			for stream != nil {
-				decode(stream)
-			}
-		}(i)
+
+	for {
+		decode(stream)
 	}
-	return nil
+	// return nil
 }
 
 func decode(stream huawei.GRPCDataservice_DataPublishServer) error {
@@ -74,7 +71,7 @@ func decode(stream huawei.GRPCDataservice_DataPublishServer) error {
 
 	switch telData.SensorPath {
 	case "huawei-ifm:ifm/interfaces/interface/mib-statistics":
-		service.Logger.Info("接收来自%s的网卡流量数据包", telData.GetNodeIdStr())
+		// service.Logger.Infof("接收来自 %s 的网卡流量数据包", telData.GetNodeIdStr())
 		ifmArryData := telData.GetDataGpb().GetRow()
 		for _, ifmRawData := range ifmArryData {
 			var ifmData = &huawei.Ifm{}
@@ -94,7 +91,7 @@ func decode(stream huawei.GRPCDataservice_DataPublishServer) error {
 			}
 		}
 	case "huawei-debug:debug/cpu-infos/cpu-info":
-		service.Logger.Info("接收来自%s的CPU使用数据包", telData.GetNodeIdStr())
+		// service.Logger.Infof("接收来自 %s 的CPU使用数据包", telData.GetNodeIdStr())
 		devmArryData := telData.GetDataGpb().GetRow()
 		for _, devmRawData := range devmArryData{
 			var devmData = &huawei.Debug{}
@@ -116,7 +113,7 @@ func decode(stream huawei.GRPCDataservice_DataPublishServer) error {
 			}
 		}
 	case "huawei-debug:debug/memory-infos/memory-info":
-		service.Logger.Info("接收来自%s的内存使用数据包", telData.GetNodeIdStr())
+		// service.Logger.Infof("接收来自 %s 的内存使用数据包", telData.GetNodeIdStr())
 		devmArryData := telData.GetDataGpb().GetRow()
 		for _, devmRawData := range devmArryData{
 			var devmData = &huawei.Debug{}
