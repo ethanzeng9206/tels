@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"sync"
 	"tels/pb/huawei"
 	"tels/service"
 	"time"
@@ -36,11 +37,16 @@ func (s *TelServer) DataPublish(stream huawei.GRPCDataservice_DataPublishServer)
 	// 		log.Print(err)
 	// 	}
 	// }
-
-	for {
-		decode(stream)
-	}
-	// return nil
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for stream != nil {
+			decode(stream)
+	   	}
+	}()
+	wg.Wait()
+	return nil
 }
 
 func decode(stream huawei.GRPCDataservice_DataPublishServer) error {
@@ -138,6 +144,7 @@ func decode(stream huawei.GRPCDataservice_DataPublishServer) error {
 		break
 	}
 	writeApi.Flush()
+	client.Close()
 
 	return nil
 }
