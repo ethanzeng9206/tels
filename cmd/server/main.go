@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"tels/decode"
 	"tels/pb/huawei"
-	"tels/service"
 
 	"google.golang.org/grpc"
 )
@@ -14,7 +14,7 @@ func main()  {
 	log.Println("telemery server")
 	grpcServer := grpc.NewServer()
 	// client := huawei.NewGRPCDataserviceClient()
-	var telServer = service.NewTelServer()
+	var telServer = decode.NewTelServer()
 
 	huawei.RegisterGRPCDataserviceServer(grpcServer, telServer)
 
