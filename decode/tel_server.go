@@ -17,6 +17,10 @@ import (
 	// "google.golang.org/grpc/internal/status"
 )
 
+// type telMsgCh chan *huawei.Telemetry
+
+var msgCh = make(chan *huawei.Telemetry, 1024)
+var wg sync.WaitGroup
 
 type TelServer struct {
 	*huawei.UnimplementedGRPCDataserviceServer
@@ -28,6 +32,9 @@ func NewTelServer() *TelServer {
 	}
 }
 
+var client = service.DbClient()
+var writeApi = client.WriteAPI("its", "tels")
+
 func (s *TelServer) DataPublish(stream huawei.GRPCDataservice_DataPublishServer) error {
 	// 这里需要加for循环，否则会丢数据，时间节点不匹配
 	// for {
@@ -37,17 +44,128 @@ func (s *TelServer) DataPublish(stream huawei.GRPCDataservice_DataPublishServer)
 	// 		log.Print(err)
 	// 	}
 	// }
-	var wg sync.WaitGroup
-	wg.Add(1)
+	
+
 	go func() {
-		defer wg.Done()
-		for stream != nil {
-			decode(stream)
-	   	}
+		for stream != nil{
+			generateCh(stream)
+		}
 	}()
+
+	wg.Add(10)
+	for i:=0; i<10; i++ {
+		go func(i int) {
+			decodeCh(msgCh)
+			wg.Done()
+		}(i)
+	}
+
 	wg.Wait()
 	return nil
 }
+
+func generateCh(stream huawei.GRPCDataservice_DataPublishServer) {
+	err := contextError(stream.Context())
+	if err != nil {
+		service.Logger.Error(err.Error())
+	}
+
+	req, err := stream.Recv()
+	if err == io.EOF {
+		service.Logger.Info("no more received stream")
+	}
+	if err != nil {
+		service.Logger.Errorf("can not receive stream request: %s" , err)
+	}
+	
+	rawData := req.GetData()
+
+	var telData = &huawei.Telemetry{}
+	err = proto.Unmarshal(rawData, telData)
+	if err != nil {
+		// log.Printf("解析头数据失败：%s\n", err)
+		service.Logger.Errorf("解析头数据失败: %s", err)
+	}
+	
+	msgCh <- telData
+}
+
+
+func decodeCh(ch chan *huawei.Telemetry) {
+	for v := range ch {
+		switch v.SensorPath {
+		case "huawei-ifm:ifm/interfaces/interface/mib-statistics":
+			// service.Logger.Infof("接收来自 %s 的网卡流量数据包", telData.GetNodeIdStr())
+			ifmArryData := v.GetDataGpb().GetRow()
+			for _, ifmRawData := range ifmArryData {
+				var ifmData = &huawei.Ifm{}
+				err := proto.Unmarshal((ifmRawData.GetContent()), ifmData)
+				if err != nil {
+					service.Logger.Errorf("解析ifm数据失败： %s", err)
+				}
+	
+				ifmIntData := ifmData.Interfaces.GetInterface()
+				for _, intData := range ifmIntData {
+					p := influxdb2.NewPointWithMeasurement("ifmTraffic").
+					AddTag("Device", v.GetNodeIdStr()).AddTag("Port", intData.GetName()).
+					AddField("SendBits", intData.GetMibStatistics().GetSendByte() * 8).AddField("ReceiveBits", intData.GetMibStatistics().GetReceiveByte() * 8).
+					AddField("SendPacket", intData.GetMibStatistics().GetSendPacket()).AddField("ReceivePacket", intData.GetMibStatistics().GetReceivePacket()).
+					SetTime(time.UnixMilli(int64(ifmRawData.GetTimestamp())))
+					writeApi.WritePoint(p)
+				}
+			}
+		case "huawei-debug:debug/cpu-infos/cpu-info":
+			// service.Logger.Infof("接收来自 %s 的CPU使用数据包", telData.GetNodeIdStr())
+			devmArryData := v.GetDataGpb().GetRow()
+			for _, devmRawData := range devmArryData{
+				var devmData = &huawei.Debug{}
+				err := proto.Unmarshal(devmRawData.GetContent(), devmData)
+				if err != nil {
+					service.Logger.Errorf("解析devm数据失败: %s", err)
+				}
+	
+				cpuInfos := devmData.GetCpuInfos().GetCpuInfo()
+	
+				for _, cpuInfo := range cpuInfos {
+					p := influxdb2.NewPointWithMeasurement("cpu").
+					AddTag("Device", v.NodeIdStr).
+					AddTag("Position", cpuInfo.Position).
+					AddField("CPU Usage", cpuInfo.SystemCpuUsage).
+					SetTime(time.UnixMilli(int64(devmRawData.GetTimestamp())))
+					// WirteDataToDb(p)
+					writeApi.WritePoint(p)
+				}
+			}
+		case "huawei-debug:debug/memory-infos/memory-info":
+			// service.Logger.Infof("接收来自 %s 的内存使用数据包", telData.GetNodeIdStr())
+			devmArryData := v.GetDataGpb().GetRow()
+			for _, devmRawData := range devmArryData{
+				var devmData = &huawei.Debug{}
+				err := proto.Unmarshal(devmRawData.GetContent(), devmData)
+				if err != nil {
+					service.Logger.Errorf("解析devm数据失败: %s", err)
+				}
+	
+				memInfos := devmData.GetMemoryInfos().GetMemoryInfo()
+	
+				for _, memInfo := range memInfos {
+					p := influxdb2.NewPointWithMeasurement("mem").
+					AddTag("Device", v.NodeIdStr).
+					AddTag("Position", memInfo.Position).
+					AddField("Mem Total", memInfo.GetOsMemoryTotal()).
+					AddField("Mem Usage", memInfo.GetDoMemoryUse()).
+					SetTime(time.UnixMilli(int64(devmRawData.GetTimestamp())))
+					writeApi.WritePoint(p)
+				}
+			}
+		default:	
+			continue
+		}
+		writeApi.Flush()
+		// client.Close()
+	}
+}
+
 
 func decode(stream huawei.GRPCDataservice_DataPublishServer) error {
 	err := contextError(stream.Context())
