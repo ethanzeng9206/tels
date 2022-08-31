@@ -45,7 +45,6 @@ func (s *TelServer) DataPublish(stream huawei.GRPCDataservice_DataPublishServer)
 	// 	}
 	// }
 	
-
 	go func() {
 		for stream != nil{
 			generateCh(stream)
