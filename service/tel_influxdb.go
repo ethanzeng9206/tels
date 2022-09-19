@@ -14,7 +14,6 @@ type influxdbConfig struct {
 	Org 		string
 	Bucket 		string
 }
-
 var Influxdb influxdbConfig
 
 func Init()  {
@@ -23,7 +22,6 @@ func Init()  {
 	if err != nil {
 		panic(fmt.Errorf("Fatal error config file: %s \n", err))
 	}
-	
 	viper.UnmarshalKey("influxdb", &Influxdb)
 }
 
@@ -37,6 +35,7 @@ func WirteDataToDb(p *write.Point) {
 }
 
 func DbClient() influxdb2.Client {
+	Init()
 	client := influxdb2.NewClient(Influxdb.Url, Influxdb.Token)
 	client.Options().SetBatchSize(120000)
 	client.Options().SetMaxRetries(240000)
