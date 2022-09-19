@@ -1,0 +1,16 @@
+# Listen Port
+server:
+  address: "0.0.0.0:10062"
+
+
+# Influxdb Server
+influxdb:
+  url: "http://10.158.1.123:8086"
+  token: "6xbs-nUI6oQjDvhUSUc8VBtzdvl324yY5JdKYv9enGrDrwf4jhjYTaiaAxHWRJzQchodRMVdaBJRnLsNzruUUA=="
+  org: "its"
+  bucket: "tels"
+
+
+# Redis Server
+redis:
+  address: "127.0.0.1:6379"
