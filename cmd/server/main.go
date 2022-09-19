@@ -10,6 +10,8 @@ import (
 	"google.golang.org/grpc"
 )
 
+
+
 func main()  {
 	log.Println("telemery server")
 	grpcServer := grpc.NewServer()
